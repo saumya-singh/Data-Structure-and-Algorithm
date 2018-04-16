@@ -109,7 +109,7 @@ class Trie:
         return match_dict
 
 
-def main():
+def main():  #make trie for the keys to be matched to the text
     trie = Trie()
     trie.make_trie("a")
     trie.make_trie("ab")
