@@ -74,7 +74,8 @@ class Trie:
                     while fallback_node is not None:
                         if fallback_node.children[child_index] is not None:
                             child.fallback = fallback_node.children[child_index]
-                            child.word_list.append(child.fallback.word_list)
+                            if len(child.fallback.word_list) > 0:
+                                child.word_list.append(*child.fallback.word_list)
                             que.enqueue(child)
                             break
                         else:
@@ -82,6 +83,30 @@ class Trie:
                     if fallback_node is None:
                         child.fallback = self.root
                         que.enqueue(child)
+
+    def matching(self, text):
+        match_dict = {}
+        text_length = len(text)
+        position = 0
+        current = self.root
+        while position < text_length:
+            char = text[position]
+            index = self.char_to_index(char)
+            if current.children[index]:
+                current = current.children[index]
+                if len(current.word_list) > 0:
+                    for word in current.word_list:
+                        if word not in match_dict:
+                            match_dict[word] = 1
+                        else:
+                            match_dict[word] += 1
+                position += 1
+            else:
+                if current.fallback == None:
+                    position += 1
+                else:
+                    current = current.fallback
+        return match_dict
 
 
 def main():
@@ -93,6 +118,10 @@ def main():
     trie.make_trie("aac")
     trie.make_trie("bd")
     trie.fallbacks()
+
+    text = input("Enter text: ")
+    # text = "bcaaab"
+    print(trie.matching(text))
 
 
 if __name__ == "__main__":
