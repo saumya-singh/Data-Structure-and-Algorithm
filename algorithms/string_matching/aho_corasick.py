@@ -4,6 +4,7 @@ class TrieNode:
         self.is_end_of_word = False
         self.fallback = None
         self.parent = None
+        self.word_list = []
 
 
 class Queue:
@@ -26,13 +27,14 @@ class Queue:
         if self.n == 0:
             print("Underflow")
             sys.exit()
-        self.queue.pop(self.front)
+        element = self.queue.pop(self.front)
         if self.n == 1:
             self.front = None
             self.rear = None
         elif self.n > 1:
             self.rear -= 1
         self.n -= 1
+        return element
 
 
 class Trie:
@@ -45,15 +47,53 @@ class Trie:
     def char_to_index(self, character):
         return ord(character) - ord('a')
 
-    def insert(self, key):
+    def make_trie(self, key):
         current = self.root
         for char in key:
             index = self.char_to_index(char)
             if not current.children[index]:
                 current.children[index] = self.get_node()
+                current.children[index].parent = current
             current = current.children[index]
         current.is_end_of_word = True
+        current.word_list.append(key)
 
     def fallbacks(self):
         que = Queue()
-        for child in 
+        not_none_children = (child for child in self.root.children if child is not None)
+        for child in not_none_children:
+            child.fallback = self.root
+            que.enqueue(child)
+        while(len(que.queue) != 0):
+            element = que.dequeue()
+            child_gen = (child for child in element.children if child is not None)
+            if child_gen:
+                for child in child_gen:
+                    child_index = element.children.index(child)
+                    fallback_node = element.fallback
+                    while fallback_node is not None:
+                        if fallback_node.children[child_index] is not None:
+                            child.fallback = fallback_node.children[child_index]
+                            child.word_list.append(child.fallback.word_list)
+                            que.enqueue(child)
+                            break
+                        else:
+                            fallback_node = fallback_node.fallback
+                    if fallback_node is None:
+                        child.fallback = self.root
+                        que.enqueue(child)
+
+
+def main():
+    trie = Trie()
+    trie.make_trie("a")
+    trie.make_trie("ab")
+    trie.make_trie("bc")
+    trie.make_trie("aab")
+    trie.make_trie("aac")
+    trie.make_trie("bd")
+    trie.fallbacks()
+
+
+if __name__ == "__main__":
+    main()
